@@ -12,7 +12,9 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      network: host
     network_mode: host
     environment:
       DB_HOST: localhost
