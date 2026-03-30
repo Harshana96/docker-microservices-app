@@ -3,6 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres:15
+    network_mode: host
     environment:
       POSTGRES_DB: tasksdb
       POSTGRES_USER: postgres
@@ -12,10 +13,9 @@ services:
 
   backend:
     build: ./backend
-    ports:
-      - "5000:5000"
+    network_mode: host
     environment:
-      DB_HOST: db
+      DB_HOST: localhost
       DB_NAME: tasksdb
       DB_USER: postgres
       DB_PASSWORD: postgres
