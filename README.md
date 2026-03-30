@@ -79,3 +79,23 @@ curl http://localhost:5000/tasks
 
 ### Connect to the postgres container
 docker exec -it docker-microservices-app-db-1 psql -U postgres -d tasksdb
+
+## Monitoring Stack
+
+Full observability with Prometheus + Grafana:
+
+| Service | Technology | Port |
+|---------|-----------|------|
+| Metrics collector | Node Exporter | 9100 |
+| Metrics database | Prometheus | 9090 |
+| Dashboard | Grafana | 3000 |
+
+Live Grafana dashboard: http://89.167.27.46:3000
+(login: admin / admin123)
+
+### Dashboard includes:
+- CPU usage (live graph)
+- Memory usage (live graph)
+- Disk space usage
+- Network traffic I/O
+- System load average
