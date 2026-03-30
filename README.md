@@ -26,5 +26,5 @@ docker compose up --build -d
 ## Live demo
 http://your-server-ip:8080
 
-# Connect to the postgres container
+### Connect to the postgres container
 docker exec -it docker-microservices-app-db-1 psql -U postgres -d tasksdb
