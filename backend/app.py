@@ -2,31 +2,42 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import psycopg2
 import os
+import time
 
 app = Flask(__name__)
 CORS(app)
 
 def get_db():
     return psycopg2.connect(
-        host=os.environ.get("DB_HOST", "db"),
+        host=os.environ.get("DB_HOST", "localhost"),
         database=os.environ.get("DB_NAME", "tasksdb"),
         user=os.environ.get("DB_USER", "postgres"),
         password=os.environ.get("DB_PASSWORD", "postgres")
     )
 
 def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS tasks (
-            id SERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            done BOOLEAN DEFAULT FALSE
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    retries = 10
+    while retries > 0:
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS tasks (
+                    id SERIAL PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    done BOOLEAN DEFAULT FALSE
+                )
+            """)
+            conn.commit()
+            cur.close()
+            conn.close()
+            print("Database initialized successfully!")
+            return
+        except psycopg2.OperationalError as e:
+            print(f"Database not ready, retrying in 3 seconds... ({retries} retries left)")
+            retries -= 1
+            time.sleep(3)
+    raise Exception("Could not connect to database after multiple retries")
 
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
