@@ -81,7 +81,7 @@ networks:
     internal: true
   monitoring:
     driver: bridge
-    internal: true
+    # internal: true
 
 volumes:
   pgdata:
