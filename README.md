@@ -1,6 +1,7 @@
 # Docker Microservices App
 
-A full-stack task manager application built with a 3-container Docker microservices architecture, deployed on a live Linux server with automated CI/CD.
+A full-stack task manager application built with a 3-container Docker microservices 
+architecture, deployed on a live Linux server with automated CI/CD and security scanning.
 
 ## Live Demo
 http://89.167.27.46:8080
@@ -16,6 +17,12 @@ http://89.167.27.46:8080
 │  │ Frontend │  │ REST API │  │   DB     │  │
 │  └──────────┘  └──────────┘  └──────────┘  │
 │                                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │  Node    │  │Prometheus│  │ Grafana  │  │
+│  │ Exporter │→ │  :9090   │→ │  :3000   │  │
+│  │  :9100   │  │          │  │Dashboard │  │
+│  └──────────┘  └──────────┘  └──────────┘  │
+│                                             │
 │         Managed by Docker Compose           │
 └─────────────────────────────────────────────┘
 ```
@@ -29,6 +36,8 @@ http://89.167.27.46:8080
 | Database | PostgreSQL 15 |
 | Containerization | Docker, Docker Compose |
 | CI/CD | GitHub Actions |
+| Monitoring | Prometheus, Grafana, Node Exporter |
+| Security | Trivy, Hadolint |
 | Server | Hetzner Cloud, Ubuntu Linux |
 
 ## Features
@@ -36,6 +45,8 @@ http://89.167.27.46:8080
 - REST API backend with 3 endpoints
 - Persistent database storage with Docker volumes
 - Automated deployment on every git push via GitHub Actions
+- Full server monitoring with Prometheus and Grafana dashboards
+- Automated security scanning on every deployment
 - Runs on a live public Linux server
 
 ## API Endpoints
@@ -49,40 +60,14 @@ http://89.167.27.46:8080
 ## CI/CD Pipeline
 
 Every push to `main` branch automatically:
-1. Connects to the server via SSH
-2. Pulls the latest code
-3. Rebuilds Docker containers
-4. Redeploys the app
-
-No manual deployment needed.
-
-## Run Locally
-```bash
-# Clone the repo
-git clone https://github.com/Harshana96/docker-microservices-app
-cd docker-microservices-app
-
-# Start all 3 containers
-docker compose up --build -d
-
-# Test the API
-curl http://localhost:5000/tasks
-```
-
-## What I Learned
-- Writing Dockerfiles and multi-container Docker Compose setups
-- Debugging real Docker networking issues on a Linux server
-- Building a CI/CD pipeline with GitHub Actions
-- Managing secrets securely with GitHub repository secrets
-- Professional Git workflow for DevOps
-
-
-### Connect to the postgres container
-docker exec -it docker-microservices-app-db-1 psql -U postgres -d tasksdb
+1. Lints Dockerfile with Hadolint
+2. Builds Docker image
+3. Scans image for vulnerabilities with Trivy
+4. Connects to server via SSH
+5. Pulls latest code
+6. Rebuilds and redeploys all containers
 
 ## Monitoring Stack
-
-Full observability with Prometheus + Grafana:
 
 | Service | Technology | Port |
 |---------|-----------|------|
@@ -93,9 +78,30 @@ Full observability with Prometheus + Grafana:
 Live Grafana dashboard: http://89.167.27.46:3000
 (login: admin / admin123)
 
-### Dashboard includes:
-- CPU usage (live graph)
-- Memory usage (live graph)
-- Disk space usage
-- Network traffic I/O
-- System load average
+## Security Scanning Results
+
+Latest Trivy scan: 6 HIGH, 0 CRITICAL vulnerabilities
+All found in base image system libraries — no vulnerabilities in application code.
+Monitored for fixes on every deployment.
+
+## Run Locally
+```bash
+# Clone the repo
+git clone https://github.com/Harshana96/docker-microservices-app
+cd docker-microservices-app
+
+# Start all containers
+docker compose up --build -d
+
+# Test the API
+curl http://localhost:5000/tasks
+```
+
+## What I Learned
+- Writing Dockerfiles and multi-container Docker Compose setups
+- Debugging real Docker networking issues on a Linux server
+- Building a CI/CD pipeline with GitHub Actions
+- Setting up full observability with Prometheus and Grafana
+- DevSecOps — automated security scanning with Trivy and Hadolint
+- Managing secrets securely with GitHub repository secrets
+- Professional Git workflow for DevOps
