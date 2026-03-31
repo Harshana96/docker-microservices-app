@@ -1,38 +1,41 @@
 services:
   db:
     image: postgres:15
-    network_mode: host
     environment:
       POSTGRES_DB: tasksdb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - private
 
   backend:
     build:
       context: ./backend
       network: host
-    network_mode: host
     environment:
-      DB_HOST: localhost
+      DB_HOST: db
       DB_NAME: tasksdb
       DB_USER: postgres
       DB_PASSWORD: postgres
     depends_on:
       - db
+    networks:
+      - public
+      - private
 
   frontend:
     build: ./frontend
-    network_mode: host
     ports:
-      - "80:80"
+      - "8080:8080"
     depends_on:
       - backend
+    networks:
+      - public
 
   node-exporter:
     image: prom/node-exporter:latest
-    network_mode: host
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -41,24 +44,42 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
 
   prometheus:
     image: prom/prometheus:latest
-    network_mode: host
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana:latest
-    network_mode: host
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin123
     volumes:
       - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+
+networks:
+  public:
+    driver: bridge
+  private:
+    driver: bridge
+    internal: true
+  monitoring:
+    driver: bridge
+    internal: true
 
 volumes:
   pgdata:
